@@ -1,72 +1,52 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
+use App\Models\Plate;
 use Illuminate\Http\Request;
-use App\Models\Plat;
+use Illuminate\Support\Facades\Auth;
 
-class PlatController extends Controller
+class PlateController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $plats = Plat::all();
-        return response()->json($plats);
+        $user = Auth::user();
+
+        $plates = Plate::where('is_available', true)
+            ->with(['category', 'recommendations' => function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            }])
+            ->get();
+
+        $response = $plates->map(function ($plate) {
+            $rec = $plate->recommendations->first();
+            
+            return [
+                'id' => $plate->id,
+                'name' => $plate->name,
+                'description' => $plate->description,
+                'price' => $plate->price,
+                'category' => $plate->category->name ?? 'Uncategorized',
+                'recommendation' => [
+                    'status' => $rec->status ?? 'no_analysis', 
+                    'score' => $rec->score ?? 0,
+                    'label' => $rec->label ?? 'Not Analyzed',
+                    'warning' => $rec->warning_message ?? null,
+                ]
+            ];
+        });
+
+        return response()->json($response, 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show($id)
     {
+        $user = Auth::user();
+        $plate = Plate::with(['category', 'ingredients', 'recommendations' => function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])->findOrFail($id);
 
-        $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'price' => 'required',
-            'category_id' => 'required',
-        ]);
-
-        $plat = Plat::create($request->all());
-        return response()->json($plat, 201);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        $plat = Plat::find($id);
-        return response()->json($plat);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        $plat = Plat::find($id);
-
-        $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'price' => 'required',
-            'category_id' => 'required',
-        ]);
-        
-        $plat->update($request->all());
-        return response()->json($plat);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $plat = Plat::find($id);
-        $plat->delete();
-        return response()->json(['message' => 'Plat supprimé avec succès'], 200);
+        return response()->json($plate);
     }
 }

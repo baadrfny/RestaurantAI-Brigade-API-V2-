@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('plats', function (Blueprint $table) {
+        Schema::create('ingredients', function(Blueprint $table){
             $table->id();
             $table->string('name');
-            $table->text('description');
-            $table->string('image')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->json('tags');
             $table->timestamps();
         });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('plats');
+        //
     }
 };

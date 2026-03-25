@@ -6,14 +6,16 @@ use App\Models\Category;
 use App\Models\Plat;
 use Illuminate\Http\Request;
 
+
 class CategoryController extends Controller
 {
+   
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $categories = Category::all();
+        $categories = Category::with('plats')->get();
         return response()->json($categories);
     }
 
@@ -22,6 +24,7 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Category::class);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -34,9 +37,10 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show($id)
     {
-        return response()->json($category);
+        $categories = Category::with('plats')->findOrFail($id);
+        return response()->json($categories);
     }
 
     /**
