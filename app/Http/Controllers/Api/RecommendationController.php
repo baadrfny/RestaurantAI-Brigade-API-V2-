@@ -51,8 +51,25 @@ class RecommendationController extends Controller
     }
 
     /**
-     * Analyze a plate for the authenticated user using Grok AI.
+     * @OA\Post(
+     * path="/api/recommendations/analyze/{plate_id}",
+     * operationId="analyzePlate",
+     * tags={"Recommendations"},
+     * summary="Lancer l'analyse nutritionnelle d'un plat",
+     * description="Envoie un plat à l'IA pour calculer le score de compatibilité",
+     * @OA\Parameter(
+     * name="plate_id",
+     * in="path",
+     * required=true,
+     * @OA\Schema(type="integer")
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Analyse réussie"
+     * )
+     * )
      */
+    
     public function analyzePlate($plate_id, Request $request)
     {
         $plate = Plat::find($plate_id);

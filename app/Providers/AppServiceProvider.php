@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\Plat;
 use App\Policies\PlatPolicy;
 
-class AuthServiceProvider extends ServiceProvider
+class AppServiceProvider extends ServiceProvider
 {
     /**
      * The policy mappings for the application.

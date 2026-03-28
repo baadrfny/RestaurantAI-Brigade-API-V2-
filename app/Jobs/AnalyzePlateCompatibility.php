@@ -29,9 +29,6 @@ class AnalyzePlateCompatibility implements ShouldQueue
         $this->plateId = $plateId;
         $this->plateData = $plateData;
         $this->userRestrictions = $userRestrictions;
-        
-        // Set queue for processing
-        $this->onQueue('ai-analysis');
     }
 
     /**

@@ -9,7 +9,10 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name'
+        'name',
+        'description',
+        'color',
+        'is_active'
     ];
 
     public function plats(){
