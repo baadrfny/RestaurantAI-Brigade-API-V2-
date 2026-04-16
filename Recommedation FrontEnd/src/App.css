@@ -1,0 +1,24 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+nav {
+  margin-bottom: 20px;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+a.active {
+  font-weight: bold;
+  color: red;
+}
+
+input {
+  padding: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}

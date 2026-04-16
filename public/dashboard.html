@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestaurantAI - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar h1 {
+            font-size: 1.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .section h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .categories-grid, .plates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .category-card, .plate-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .category-card:hover, .plate-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .category-name, .plate-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .plate-price {
+            color: #667eea;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .analyze-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .recommendations {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .recommendation-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .label {
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        
+        .label.highly-recommended {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .label.recommended {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .label.not-recommended {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .error {
+            color: #e74c3c;
+            background: #fdf2f2;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>🍽️ RestaurantAI</h1>
+        <div class="user-info">
+            <span id="userName">Loading...</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div id="message"></div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCategories">-</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalPlates">-</div>
+                <div class="stat-label">Plates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRecommendations">-</div>
+                <div class="stat-label">My Recommendations</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🍽️ Categories</h2>
+            <div id="categoriesContainer" class="categories-grid">
+                <div class="loading">Loading categories...</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🥘 Available Plates</h2>
+            <div id="platesContainer" class="plates-grid">
+                <div class="loading">Loading plates...</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🤖 My Recommendations</h2>
+            <div id="recommendationsContainer" class="recommendations">
+                <div class="loading">Loading recommendations...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let authToken = localStorage.getItem('auth_token');
+        let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        // Check if user is logged in
+        if (!authToken) {
+            window.location.href = 'login.html';
+        }
+        
+        // Set user name in navbar
+        document.getElementById('userName').textContent = currentUser.name || 'User';
+        
+        // API helper function
+        async function apiCall(endpoint, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                ...defaultOptions,
+                ...options
+            });
+            
+            if (response.status === 401) {
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+                return null;
+            }
+            
+            return await response.json();
+        }
+        
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                // Load categories
+                const categoriesResponse = await apiCall('/categories');
+                if (categoriesResponse?.success) {
+                    document.getElementById('totalCategories').textContent = categoriesResponse.data.length;
+                    displayCategories(categoriesResponse.data);
+                }
+                
+                // Load plates
+                const platesResponse = await apiCall('/plates');
+                if (platesResponse?.success) {
+                    document.getElementById('totalPlates').textContent = platesResponse.data.length;
+                    displayPlates(platesResponse.data);
+                }
+                
+                // Load recommendations
+                const recommendationsResponse = await apiCall('/recommendations');
+                if (recommendationsResponse?.success) {
+                    document.getElementById('totalRecommendations').textContent = recommendationsResponse.data.length;
+                    displayRecommendations(recommendationsResponse.data);
+                }
+                
+            } catch (error) {
+                document.getElementById('message').innerHTML = '<div class="error">Error loading dashboard data</div>';
+                console.error('Dashboard error:', error);
+            }
+        }
+        
+        function displayCategories(categories) {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = categories.map(category => `
+                <div class="category-card">
+                    <div class="category-name">${category.name}</div>
+                    <div style="color: #666; font-size: 0.9rem;">${category.plats_count || 0} plates</div>
+                </div>
+            `).join('');
+        }
+        
+        function displayPlates(plates) {
+            const container = document.getElementById('platesContainer');
+            container.innerHTML = plates.map(plate => `
+                <div class="plate-card">
+                    <div class="plate-name">${plate.name}</div>
+                    <div class="plate-price">$${plate.price}</div>
+                    <button class="analyze-btn" onclick="analyzePlate(${plate.id})">
+                        🤖 Analyze
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendationsContainer');
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">No recommendations yet. Analyze some plates to get started!</p>';
+                return;
+            }
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${rec.plate?.name || 'Unknown Plate'}</strong>
+                            <div class="score">${rec.score}%</div>
+                        </div>
+                        <span class="label ${getLabelClass(rec.label)}">${rec.label}</span>
+                    </div>
+                    ${rec.warning_message ? `<div style="color: #666; margin-top: 0.5rem;">${rec.warning_message}</div>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        function getLabelClass(label) {
+            if (label.includes('Highly')) return 'highly-recommended';
+            if (label.includes('Recommended')) return 'recommended';
+            return 'not-recommended';
+        }
+        
+        async function analyzePlate(plateId) {
+            try {
+                const messageDiv = document.getElementById('message');
+                messageDiv.innerHTML = '<div class="loading">Analyzing plate compatibility...</div>';
+                
+                const response = await apiCall(`/recommendations/analyze/${plateId}`, {
+                    method: 'POST'
+                });
+                
+                if (response?.success) {
+                    messageDiv.innerHTML = '<div class="success">Analysis started! Check recommendations in a few moments.</div>';
+                    // Reload recommendations after a delay
+                    setTimeout(loadDashboard, 3000);
+                } else {
+                    messageDiv.innerHTML = `<div class="error">${response?.message || 'Analysis failed'}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('message').innerHTML = '<div class="error">Error analyzing plate</div>';
+                console.error('Analysis error:', error);
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+        
+        // Load dashboard on page load
+        loadDashboard();
+    </script>
+</body>
+</html>
